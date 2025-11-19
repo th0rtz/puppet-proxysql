@@ -25,12 +25,47 @@ class proxysql::configure {
     }
   }
 
+  if $proxysql::pgsql_servers {
+    $proxysql::pgsql_servers.each |$server| {
+      $server.each |$k,$v| {
+        $hostname = $k
+        $port = $server[$k][port] ? { undef   => 3306,
+        default => $server[$k][port], }
+        $hostgroup_id = $server[$k][hostgroup_id]
+
+        if $proxysql::manage_hostgroup_for_servers {
+          proxy_pgsql_server { "${hostname}:${port}-${hostgroup_id}":
+            hostname => $hostname,
+            *        => $server[$k],
+          }
+        } else {
+          proxy_pgsql_server_no_hostgroup { "${hostname}:${port}":
+            hostname => $hostname,
+            *        => $server[$k],
+          }
+        }
+      }
+    }
+  }
+
   if $proxysql::mysql_users {
     $proxysql::mysql_users.each |$user| {
       $user.each |$k,$v| {
         $username = $k
 
         proxy_mysql_user { $username:
+          * => $user[$k],
+        }
+      }
+    }
+  }
+
+  if $proxysql::pgsql_users {
+    $proxysql::pgsql_users.each |$user| {
+      $user.each |$k,$v| {
+        $username = $k
+
+        proxy_pgsql_user { $username:
           * => $user[$k],
         }
       }
@@ -53,6 +88,22 @@ class proxysql::configure {
     }
   }
 
+  if $proxysql::pgsql_hostgroups {
+    $proxysql::pgsql_hostgroups.each |$hostgroup| {
+      $hostgroup.each |$k,$v| {
+        $comment = $k
+        $reader = $hostgroup[$k][reader]
+        $writer = $hostgroup[$k][writer]
+
+        proxy_pgsql_replication_hostgroup { "${writer}-${reader}":
+          writer_hostgroup => $writer,
+          reader_hostgroup => $reader,
+          comment          => $k,
+        }
+      }
+    }
+  }
+
   if $proxysql::mysql_group_replication_hostgroups {
     $proxysql::mysql_group_replication_hostgroups.each |$hostgroup| {
       $hostgroup.each |$k,$v| {
@@ -67,6 +118,34 @@ class proxysql::configure {
         $max_transactions = $hostgroup[$k][max_transactions]
 
         proxy_mysql_group_replication_hostgroup { "${writer}-${backup}-${reader}-${offline}":
+          writer_hostgroup        => $writer,
+          backup_writer_hostgroup => $backup,
+          reader_hostgroup        => $reader,
+          offline_hostgroup       => $offline,
+          active                  => $active,
+          max_writers             => $writers,
+          writer_is_also_reader   => $writer_is_reader,
+          max_transactions_behind => $max_transactions,
+          comment                 => $k,
+        }
+      }
+    }
+  }
+
+  if $proxysql::pgsql_group_replication_hostgroups {
+    $proxysql::pgsql_group_replication_hostgroups.each |$hostgroup| {
+      $hostgroup.each |$k,$v| {
+        $comment          = $k
+        $reader           = $hostgroup[$k][reader]
+        $backup           = $hostgroup[$k][backup]
+        $writer           = $hostgroup[$k][writer]
+        $offline          = $hostgroup[$k][offline]
+        $active           = $hostgroup[$k][active]
+        $writers          = $hostgroup[$k][writers]
+        $writer_is_reader = $hostgroup[$k][writer_is_reader]
+        $max_transactions = $hostgroup[$k][max_transactions]
+
+        proxy_pgsql_group_replication_hostgroup { "${writer}-${backup}-${reader}-${offline}":
           writer_hostgroup        => $writer,
           backup_writer_hostgroup => $backup,
           reader_hostgroup        => $reader,
@@ -112,6 +191,20 @@ class proxysql::configure {
         $rule_id = $rule[$k][rule_id]
 
         proxy_mysql_query_rule { "mysql_query_rule-${rule_id}":
+          comment => $k,
+          *       => $rule[$k],
+        }
+      }
+    }
+  }
+
+  if $proxysql::pgsql_rules {
+    $proxysql::pgsql_rules.each |$rule| {
+      $rule.each |$k,$v| {
+        $comment = $k
+        $rule_id = $rule[$k][rule_id]
+
+        proxy_pgsql_query_rule { "mysql_query_rule-${rule_id}":
           comment => $k,
           *       => $rule[$k],
         }

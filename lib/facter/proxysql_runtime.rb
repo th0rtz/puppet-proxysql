@@ -27,12 +27,16 @@ Facter.add(:proxysql_runtime) do
     [
       # tables that might include unencrypted credentials have not been included here.
       'runtime_mysql_servers',
+      'runtime_pgsql_servers',
       'runtime_mysql_aws_aurora_hostgroups',
       'runtime_mysql_galera_hostgroups',
       'runtime_mysql_group_replication_hostgroups',
+      'runtime_pgsql_group_replication_hostgroups',
       'runtime_mysql_query_rules',
+      'runtime_pgsql_query_rules',
       'runtime_mysql_query_rules_fast_routing',
       'runtime_mysql_replication_hostgroups',
+      'runtime_pgsql_replication_hostgroups',
       'runtime_proxysql_servers'
     ].each do |table|
       results = client.query("SELECT * FROM #{table}")

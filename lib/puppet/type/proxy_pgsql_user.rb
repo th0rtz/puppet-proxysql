@@ -1,0 +1,89 @@
+# frozen_string_literal: true
+
+# This has to be a separate type to enable collecting
+require 'digest/sha1'
+
+Puppet::Type.newtype(:proxy_pgsql_user) do
+  @doc = 'Manage a ProxySQL pgsql_user. This includes management of users password as well as privileges.'
+
+  ensurable
+
+  autorequire(:file) { '/root/.my.cnf' }
+  autorequire(:class) { 'mysql::client' }
+  autorequire(:service) { 'proxysql' }
+
+  def initialize(*args)
+    super
+
+    return if self[:ensure] != :present
+
+    self[:password] = "*#{Digest::SHA1.hexdigest(Digest::SHA1.digest(self[:password])).upcase}" unless self[:password].start_with?('*') || self[:encrypt_password] != :true
+  end
+
+  newparam(:name, namevar: true) do
+    desc 'The name of the user to manage.'
+  end
+
+  newparam(:load_to_runtime) do
+    desc 'Load this entry to the active runtime.'
+    defaultto :true
+    newvalues(:true, :false)
+  end
+
+  newparam(:save_to_disk) do
+    desc 'Perist this entry to the disk.'
+    defaultto :true
+    newvalues(:true, :false)
+  end
+
+  newparam(:encrypt_password) do
+    desc 'Encrypt the users password (requires ProxySQL setting `admin-hash_password` = `true`)'
+    defaultto :true
+    newvalues(:true, :false)
+  end
+
+  newproperty(:password) do
+    desc 'The password of the user. You can use mysql_password() for creating a hashed password.'
+    newvalue(%r{\w*})
+  end
+
+  newproperty(:active) do
+    desc 'Is the user active or not.'
+    newvalue(%r{[01]})
+  end
+
+  newproperty(:use_ssl) do
+    desc 'Use ssl or not.'
+    newvalue(%r{[01]})
+  end
+
+  newproperty(:default_hostgroup) do
+    desc 'Default hostgroup for the user.'
+    newvalue(%r{\d+})
+  end
+
+  newproperty(:transaction_persistent) do
+    desc 'Disable routing across hostgroups once a transaction has started for a specific user.'
+    newvalue(%r{[01]})
+  end
+
+  newproperty(:fast_forward) do
+    desc 'Use fast forwrd or not.'
+    newvalue(%r{[01]})
+  end
+
+  newproperty(:backend) do
+    desc 'Backend or not.'
+    newvalue(%r{[01]})
+  end
+
+  newproperty(:frontend) do
+    desc 'Frontend or not.'
+    newvalue(%r{[01]})
+  end
+
+  newproperty(:max_connections) do
+    desc 'Max concurrent connections for the user.'
+    newvalue(%r{\d+})
+  end
+end

@@ -21,4 +21,19 @@
 <% if $key == "mysql_galera_hostgroups" { -%>
 <%= $key %> = (<% if $value != {} { -%><%= $value %><% } -%>)
 <% } -%>
+<% if $key == "pgsql_servers" { -%>
+<%= $key %> = (<% if $value != {} { -%><%= $value %><% } -%>)
+<% } -%>
+<% if $key == "pgsql_users" { -%>
+<%= $key %> = (<% if $value != {} { -%><%= $value %><% } -%>)
+<% } -%>
+<% if $key == "pgsql_query_rules" { -%>
+<%= $key %> = (<% if $value != {} { -%><%= $value %><% } -%>)
+<% } -%>
+<% if $key == "pgsql_replication_hostgroups" { -%>
+<%= $key %> = (<% if $value != {} { -%><%= $value %><% } -%>)
+<% } -%>
+<% if $key == "pgsql_group_replication_hostgroups" { -%>
+<%= $key %> = (<% if $value != {} { -%><%= $value %><% } -%>)
+<% } -%>
 <% } -%>
