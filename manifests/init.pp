@@ -179,7 +179,7 @@ class proxysql (
   Boolean $save_to_disk = true,
 
   Boolean $manage_repo = true,
-  Pattern[/^[1|2]\.\d+\.\d+/] $version = $proxysql::params::version,
+  Pattern[/^[1|2|3]\.\d+\.\d+/] $version = $proxysql::params::version,
 
   Optional[String[1]] $package_source         = undef,
   Optional[String[1]] $package_checksum_value = undef,
@@ -189,7 +189,7 @@ class proxysql (
 
   String $sys_owner = $version ? {
     /^1/ => 'root',
-    /^2/ => 'proxysql',
+    /^2|3/ => 'proxysql',
   },
   String $sys_group = $sys_owner,
 
